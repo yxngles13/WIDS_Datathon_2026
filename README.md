@@ -1,11 +1,6 @@
 # WIDS_Datathon_2026
 # 🔥 Wildfire Risk Prediction (WiDS Datathon 2026)
 
-![Python](https://img.shields.io/badge/Python-3.10-blue)
-![ML](https://img.shields.io/badge/Machine%20Learning-Survival%20Analysis-orange)
-![Status](https://img.shields.io/badge/Status-In%20Progress-yellow)
-![License](https://img.shields.io/badge/License-MIT-green)
-
 ## 📌 Overview
 When a wildfire ignites, emergency responders must make critical decisions with limited early information:
 - Which fires will reach populated areas?
