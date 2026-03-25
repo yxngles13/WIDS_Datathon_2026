@@ -52,14 +52,3 @@ To understand the model's output, several visualizations were generated:
 *   **Heatmap: Probability per Fire per Horizon**: A heatmap visualizing the predicted probabilities for each fire (sorted by 48h risk) across the different horizons, providing a quick overview of high-risk incidents.
 *   **Number of High-Risk Fires**: A bar chart showing the count of fires predicted to have a probability greater than 0.5 for each time horizon, highlighting the increasing number of critical events over time.
 
-## 📂 Project Structure
-├── data/ # Processed datasets
-├── notebooks/ # EDA and experiments
-├── src/
-│ ├── preprocessing/
-│ ├── features/
-│ ├── models/
-│ └── evaluation/
-├── results/
-├── requirements.txt
-└── README.md
