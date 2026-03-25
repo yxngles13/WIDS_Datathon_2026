@@ -1,77 +1,56 @@
 # WIDS_Datathon_2026
 # 🔥 Wildfire Risk Prediction (WiDS Datathon 2026)
 
-## 📌 Overview
-When a wildfire ignites, emergency responders must make critical decisions with limited early information:
-- Which fires will reach populated areas?
-- How quickly will they spread?
-- Which communities should prepare first?
+This notebook demonstrates a survival analysis approach to predict the time until a wildfire event ('time_to_hit_hours') and the probability of an event occurring within specific time horizons.
 
-This project develops a **survival analysis model** to predict the probability that a wildfire will threaten an evacuation zone within:
+## Project Overview
 
-⏱️ **12, 24, 48, and 72 hours**  
-using only the **first 5 hours after ignition**
+The goal is to analyze wildfire incident data, identify factors influencing their spread, and build a predictive model using survival analysis techniques. The project utilizes data from the WiDSWorldWide_GlobalDathon26 Kaggle competition.
 
----
+## Dataset
 
-## 🎯 Objectives
-- Rank wildfires by **urgency**
-- Generate **calibrated probability estimates**
-- Support **evacuation planning and resource allocation**
+The dataset consists of `train.csv` and `test.csv` files, containing various features related to wildfire events, including geographical, temporal, and physical characteristics. Key target variables are `time_to_hit_hours` (the time duration until an event) and `event` (a binary indicator for whether an event occurred or was censored).
 
----
+## Exploratory Data Analysis (EDA)
 
-## 🧠 Problem Formulation
+The EDA phase involved:
 
-We model wildfire spread as a **right-censored survival problem**:
+*   **Distribution Analysis**: Histograms of `time_to_hit_hours` for both 'hit' (event=1) and 'censored' (event=0) observations to understand their distributions.
+*   **Class Imbalance Check**: Verified the distribution of the `event` variable to identify potential imbalance (`event=0` (censored) vs `event=1` (hit)).
+*   **Feature Correlation**: Generated a correlation matrix for numeric features to understand relationships between variables.
+*   **Feature Selection**: Identified and selected a subset of relevant features (`features_to_keep`) to reduce redundancy and improve model performance.
 
-- `event = 1` → fire reaches within 5 km of an evacuation zone  
-- `event = 0` → fire does not reach within 72 hours (censored)  
-- Target → `time_to_hit_hours`
+## Model Training
 
-We estimate:
+### Survival Analysis with Random Survival Forest
 
-P(T ≤ t),  where t ∈ {12, 24, 48, 72}
+*   **Motivation**: Traditional classification or regression models are not ideal for 'time-to-event' data due to censoring (where the event has not yet occurred by the end of observation). Survival analysis, specifically the Random Survival Forest (RSF), is used to handle censored data appropriately.
+*   **Library**: The `scikit-survival` library was used for implementing the survival model.
+*   **Model**: A `RandomSurvivalForest` model was initialized with specific parameters (`n_estimators=300`, `min_samples_leaf=20`, `max_features=0.5`, `max_depth=4`, `random_state=42`).
+*   **Training**: The model was trained on the `X_train` features and `y_train` (structured as `Surv` objects from `event` and `time_to_hit_hours`).
 
----
+## Model Evaluation
 
-## ⚙️ Approach
+### Concordance Index (C-index)
 
-### 🔹 Data Processing
-- Used features from the **first 5-hour observation window**
-- Handled missing values and normalized inputs
-- Engineered temporal and spatial features
+*   **Metric**: The Concordance Index (C-index) is used to evaluate the ranking ability of the survival model, indicating how well the model predicts the order of event times. A higher C-index (closer to 1) indicates better performance.
+*   **Training Data C-index**: The model achieved a C-index of `0.9466` on the training data.
+*   **Cross-Validation**: A 5-fold stratified cross-validation was performed to get a more robust estimate of the model's performance. The mean C-index was `0.9342` with a standard deviation of `0.0163`, indicating good generalization capability.
 
-### 🔹 Feature Engineering
-- Fire perimeter growth rate  
-- Distance to nearest evacuation zone  
-- Early spread dynamics  
+## Prediction and Submission
 
-### 🔹 Modeling
-- Survival analysis models (Cox, tree-based methods)
-- Gradient boosting for time-to-event prediction
-- Probability calibration (isotonic regression, Platt scaling)
+*   **Survival Probabilities**: The trained `RandomSurvivalForest` model was used to predict survival functions for the `X_test` dataset.
+*   **Horizon Probabilities**: From the survival functions, the probability of a 'hit' (event=1) occurring within specific time horizons (12, 24, 48, 72 hours) was calculated (1 - survival probability).
+*   **Submission File**: These probabilities were compiled into a `submission.csv` file, formatted with `event_id` and corresponding probability columns (`prob_12h`, `prob_24h`, `prob_48h`, `prob_72h`).
 
-### 🔹 Evaluation
-- **Ranking performance** → prioritization of high-risk fires  
-- **Calibration quality** → reliability of predicted probabilities  
+## Visualizations of Predicted Probabilities
 
----
+To understand the model's output, several visualizations were generated:
 
-## 📊 Results (Work in Progress)
-- Generated multi-horizon probability predictions  
-- Identified high-risk fires early using limited data  
-- Ongoing model tuning and evaluation  
-
----
-
-## 🏗️ Tech Stack
-- Python  
-- Pandas, NumPy, Scikit-learn  
-- Survival Analysis / Gradient Boosting  
-- Matplotlib, Seaborn  
-
----
+*   **Probability Distributions per Horizon**: Histograms showing the distribution of predicted 'hit' probabilities for each horizon (12h, 24h, 48h).
+*   **Mean Predicted Probability per Horizon**: A line plot illustrating how the average predicted probability of a hit increases with longer time horizons, along with standard deviation to show variability.
+*   **Heatmap: Probability per Fire per Horizon**: A heatmap visualizing the predicted probabilities for each fire (sorted by 48h risk) across the different horizons, providing a quick overview of high-risk incidents.
+*   **Number of High-Risk Fires**: A bar chart showing the count of fires predicted to have a probability greater than 0.5 for each time horizon, highlighting the increasing number of critical events over time.
 
 ## 📂 Project Structure
 ├── data/ # Processed datasets
@@ -84,11 +63,3 @@ P(T ≤ t),  where t ∈ {12, 24, 48, 72}
 ├── results/
 ├── requirements.txt
 └── README.md
-## 🚀 Getting Started
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
-pip install -r requirements.txt
-jupyter notebook
